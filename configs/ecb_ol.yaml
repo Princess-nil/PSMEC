@@ -1,0 +1,62 @@
+# ECB-OL Configuration (Text-dominant Streaming Benchmark)
+# Corresponds to Section 5 experimental settings
+
+# Dataset
+dataset_name: "ECB-OL"
+data_dir: "data/ecb_ol/"
+text_dim: 768 
+visual_dim: 512  # CLIP ViT-B/32 dimension
+
+# Model Architecture (Section 4.2)
+model:
+  hidden_dim: 160
+  dropout: 0.15
+  enable_risk_heads: false  # No calibration branch for ECB-OL
+  k_s: 10  # Candidate set size
+  k_ex: 3  # Exemplar buffer size
+
+# Training (Section 5)
+training:
+  epochs: 80
+  batch_size: 512
+  learning_rate: 5.0e-4
+  weight_decay: 1.0e-4
+
+  # Loss weights (α values in Section 4.2)
+  # L = L_CE + α_create·L_create + α_margin·L_margin + α_guard·L_guard + α_calib·L_calib
+  loss_weights:
+    create_weight: 0.35       # α_create (α_1 in paper)
+    margin_weight: 0.2        # α_margin (α_2 in paper)
+    guard_weight: 0.0         # α_guard (α_3 in paper)
+    ranking_margin: 0.2       # Margin for L_margin
+    guard_margin: 0.2         # Margin for L_guard
+
+    # Calibration branch disabled for ECB-OL
+    pollution_risk_weight: 0.0    # β_poll
+    fragmentation_risk_weight: 0.0  # β_frag
+    risk_margin_weight: 0.0       # β_risk-m
+
+  # Example weighting
+  ambiguity_alpha: 0.0
+  single_doc_alpha: 0.0
+
+  # Early stopping
+  patience: 8
+  eval_every: 5
+
+# Inference
+inference:
+  create_bias: 0.0  # Selected on dev set
+
+  # Risk calibration disabled for ECB-OL
+  pollution_risk_scale: 0.0  # λ_poll
+  fragmentation_risk_scale: 0.0  # λ_frag
+
+# Benchmark Statistics (Section 3.2, Table 1)
+benchmark_stats:
+  test_episodes: 1770
+  test_clusters: 805
+  visual_coverage: 0.2741
+  late_support_rate: 0.3328
+  conflict_rate: 0.1418
+
